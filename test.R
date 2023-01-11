@@ -1,0 +1,10 @@
+library(sf)
+library(terra)
+
+grid_sf <- st_read("www/wolverines.gpkg", "grids", quiet=T)
+grid <- vect("www/wolverines.gpkg", "grids")
+n <- vect(sample_n(grid_sf, 140))
+v=spatSample(n, 3, strata='id')
+plot(grid)
+plot(n, add=T, col='red')
+plot(v, add=T)
