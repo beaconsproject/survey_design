@@ -1,6 +1,6 @@
-# Wolverine survey design
+# Survey design
 
-This repository contains code, data, and an app to facilitate the design of a wolverine survey in the Yukon.
+This repository contains code, data, and an app to facilitate the design of a grid-based camera trap survey for wolverines and other mammals in the Yukon.
 
 The app can be run from a local machine using the following steps:
 
@@ -11,4 +11,4 @@ The app can be run from a local machine using the following steps:
 
   3. Start the Shiny app:
 
-    shiny::runGitHub("prvernier/wolverines")
+    shiny::runGitHub("beaconsproject/survey_design")
