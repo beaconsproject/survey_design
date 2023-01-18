@@ -26,7 +26,7 @@ tmap_options(basemaps = c("Esri.WorldTopoMap","Esri.NatGeoWorldMap","Esri.WorldI
 shinybusy::use_busy_spinner()
 
 ui = dashboardPage(
-  dashboardHeader(title = 'Wolverines Survey v2'),
+  dashboardHeader(title = 'Wolverines Survey'),
   dashboardSidebar(
     
     sidebarMenu(
@@ -71,7 +71,7 @@ ui = dashboardPage(
     #### Clusters 
     ####
     # how many clusters
-    sliderInput("clusters", label="Number of clusters:", min=0, max=20, value=3, 
+    sliderInput("clusters", label="Number of clusters:", min=0, max=20, value=4, 
                 ticks=FALSE),
     # button to generate clusters
     actionButton("clustButton", "Generate clusters"),
