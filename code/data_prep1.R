@@ -1,5 +1,5 @@
-# Summarize key datasets by grids
-# PV 2023-01-10
+# Import, clip, and project key datasets
+# PV 2023-01-11
 
 library(sf)
 library(dplyr)
@@ -9,7 +9,7 @@ setwd('survey_design')
 #st_layers('www/wolverines.gpkg')
 
 # Read the 707 ~27km2 grids that were selected in ArcMap
-grid <- st_read('data/thtt_boreal_cordillera.gdb', 'grids707') %>%
+grid <- st_read('data/thtt_boreal_cordillera.gdb', 'grids750') %>%
     mutate(id=row_number(), Shape_Length=NULL, Shape_Area=NULL) %>%
     rename(grid_m2=area_m2)
 bnd <- st_union(grid)

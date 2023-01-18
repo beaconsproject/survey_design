@@ -14,15 +14,27 @@ valid <- function(x) {
 # load data into reactiveValues object
 # This is essentially a list that can be passed into other functions
 load.data <- function() {
+  # initialize study area boundary
+  lats <- c(64.3, 64.3, 63.2, 63.2)
+  lons <- c(-141, -137, -137, -141)
+  df <- data.frame(lon = lons, lat = lats)
+  
+  study_boundary_init = st_as_sf(df, coords = c('lon', 'lat'), crs = 4326) %>%
+    st_transform(3578) %>%
+    summarise(geometry = st_combine(geometry)) %>%
+    st_cast('POLYGON')
+  
   data <- reactiveValues(
     grid = st_read('www/wolverines.gpkg', 'grids', quiet = T),
     linear = st_read('www/wolverines.gpkg', 'linear_features', quiet = T),
-    areal = st_read("www/wolverines.gpkg", "areal_features", quiet=T),
-    factors = st_read("www/wolverines.gpkg", "survey_factors", quiet=T),
+    areal = st_read("www/wolverines.gpkg", 'areal_features', quiet=T),
+    factors = st_read("www/wolverines.gpkg", 'survey_factors', quiet=T),
     # Trondek Hwechin Traditional Territory
-    thtt = st_read('www/wolverines.gpkg', 'TH_trad_territ', quiet = T),
+    thtt = st_read('www/wolverines.gpkg', 'th_trad_territ', quiet = T),
     # And settlement lands
-    th_settlement = st_read('www/wolverines.gpkg', 'th_settlement_land', quiet = T)
+    settlement = st_read('www/wolverines.gpkg', 'th_settlement_land', quiet = T),
+    study_boundary = study_boundary_init,
+    clicklist = list()
   )
   
   return(data)
@@ -33,11 +45,11 @@ load.data <- function() {
 update.inputs <- function(input, session, data) {
   # print('in update inputs')
   updateSelectInput(inputId = 'inv',
-                    choices = names(data$factors)[4:23],
+                    choices = names(data$factors)[3:22],
                     selected = 'merge100_pct')
   
   updateSelectInput(inputId = 'factors',
-                    choices = names(data$factors)[4:23],
+                    choices = names(data$factors)[3:22],
                     selected = c('merge100_pct','elev_median','elev_sd','forest_pct',
                                  'water_pct')
   )
@@ -65,17 +77,23 @@ create.clusters <- function(input, session, data) {
   # select only factors that user wants to cluster by
   # st_drop_geometry() drops geom field from table (geom describes what type of
   # feature it is and has some numbers describing it)
-  y <- select(x, unlist(input$factors)) %>% 
+  # print('intersecting study boundary and factors')
+  y <- select(x, unlist(input$factors), id, grid_m2) %>%
+    st_intersection(data$study_boundary) %>%
+    filter(grid_m2 > 23000000) %>%
     st_drop_geometry()
   
   # Now actually cluster cells
   # kmeans() returns a list; $cluster object is a vector where the name is the
   # cell number and the value is what cluster it's in
-  clust <- kmeans(scale(y), input$clusters)$cluster
+  clust <- kmeans(scale(y$merge100_pct), input$clusters)$cluster
+  
+  # View(clust)
   # print('kmeans')
   
   # add field to x with what cluster the cell is in
   x <- x %>%
+    filter(id %in% y$id) %>%
     mutate(clusters = clust)
   # print('mutate(clusters = clust)')
   
@@ -87,13 +105,52 @@ create.clusters <- function(input, session, data) {
   return(data)
 }
 
+modify.study.boundary <- function(input, output, session, data) {
+  print('click')
+  if (length(data$clicklist) ==4) {
+    data$clicklist <- list()
+  }
+  
+  click <- input$map1_click
+  
+  data$clicklist[[length(data$clicklist) + 1]] <- click
+  
+  if (length(data$clicklist) == 4) {
+    lats <- c(data$clicklist[[1]]$lat,
+              data$clicklist[[2]]$lat,
+              data$clicklist[[3]]$lat,
+              data$clicklist[[4]]$lat)
+    lons <- c(data$clicklist[[1]]$lng,
+              data$clicklist[[2]]$lng,
+              data$clicklist[[3]]$lng,
+              data$clicklist[[4]]$lng)
+    
+    df <- data.frame(lon = lons, lat = lats)
+    
+    study_boundary_mod = st_as_sf(df, coords = c('lon', 'lat'), crs = 4326) %>%
+      st_transform(3578) %>% 
+      summarise(geometry = st_combine(geometry)) %>%
+      st_cast('POLYGON')
+    
+    data$study_boundary <- study_boundary_mod
+    
+    tmapProxy('map1',
+              x = {tm_remove_layer(1000) + 
+                   tm_shape(data$study_boundary) + tm_borders(lwd = 2,
+                                                              group='Study boundary')})
+  }
+  
+  return(data)
+}
+
+
 render.map1 <- function(input, output, session, data) {
   if(!valid(input$inv)) {
     print('returning from render.map1 early')
     return()
   } 
   # print('in render.map1')
-  output$map1 <- renderTmap({
+  output$map1 <- renderLeaflet({
     # Set color palette based on selected characteristics
     if (input$inv == 'forest_pct') {
       pal <- 'YlGn'
@@ -111,14 +168,16 @@ render.map1 <- function(input, output, session, data) {
     # If the user clicks the button to generate clusters
     if (input$clustButton) {
       # print('if(input$clustButton)')
-      m <- tm_shape(data$clusters) + tm_fill('clusters', palette = 'Set1',
-                                          alpha = 1,
+      a.pal <- c('#7fc97f','#beaed4','#fdc086','#ffff99','#386cb0','#f0027f','#bf5b17','#666666')
+      m <- tm_shape(data$clusters) + tm_fill('clusters', palette = a.pal,
+                                          alpha = 0.65,
                                           group = 'Clusters',
                                           # zindex determines the order that elements
                                           # appear on the page; an element with a
                                           # higher z index appears in front of a lower
                                           # zindex
-                                          zindex = 500)
+                                          #zindex = 500
+                                          )
     } else {
       # print('in else')
       m <- tm_shape(data$factors) + tm_fill(input$inv, palette = pal, 
@@ -126,39 +185,39 @@ render.map1 <- function(input, output, session, data) {
                                             alpha = 1,
                                             colorNA = NULL, 
                                             group = input$inv,
-                                            title = input$inv,
-                                            zindex = 500)
+                                            title = input$inv)
     }
     
     # Base map
-    m <- m + tm_shape(data$grid) + tm_borders() +
+    m <- m + tm_shape(data$grid) + tm_borders(group='Grid') +
       tm_shape(data$linear) + tm_lines(col = 'black',
                                        alpha = 1,
-                                       group = 'linfeat', zindex = 560) +
+                                       group='Linear features') +
       tm_shape(data$areal) + tm_fill(col = 'red',
                                      alpha = 1,
-                                     group = 'arealfeat', zindex = 570) +
+                                     group='Areal features') +
       tm_shape(data$thtt) + tm_borders(col = 'black',
                                        alpha = 1,
-                                       zindex = 990) +
-      tm_shape(data$th_settlement) + tm_fill(col = 'blue', 
+                                       group='TH traditional territory') +
+      tm_shape(data$settlement) + tm_fill(col = 'blue', 
                                              alpha = .5,
-                                             zindex = 1000)
+                                             group='Settlement lands') + 
+      tm_shape(data$study_boundary) + tm_borders(col='black', lwd=2, group='Study boundary')
     
-    observeEvent(input$th.settlement, ignoreInit = T, {
-      print('settlement button clicked')
-      if (input$th.settlement) {
-        tmapProxy('map1', 
-                  x = {tm_shape(data$th_settlement) + 
-                       tm_fill(col = 'blue', 
-                               alpha = .5,
-                               zindex = 1000)
-                      })
-      } else {
-        tmapProxy('map1',
-                  x = {tm_remove_layer(1000)})
-      }
-    })
+    #observeEvent(input$th.settlement, ignoreInit = T, {
+    #  print('settlement button clicked')
+    #  if (input$th.settlement) {
+    #    tmapProxy('map1', 
+    #              x = {tm_shape(data$settlement) + 
+    #                   tm_fill(col = 'blue', 
+    #                           alpha = .5,
+    #                           zindex = 1000)
+    #                  })
+    #  } else {
+    #    tmapProxy('map1',
+    #              x = {tm_remove_layer(1000)})
+    #  }
+    #})
     
     # print('added linear and areal features')
     # if (input$goButton) {
@@ -167,6 +226,8 @@ render.map1 <- function(input, output, session, data) {
     m <- m + tm_legend(position = c('right', 'top'), frame = T)
     # print('reached end of tmap rendering')
     m
+    lf <- tmap_leaflet(m)
+    lf %>% leaflet::hideGroup(c("Areal disturbances","Linear disturbances","Areal features","Linear features","Elevation","Stratified random","TH traditional territory","Settlement lands","Camera traps (stratified)"))
   }) # renderTmap
   print('finished render.map1')
 } # render.map1
@@ -195,8 +256,7 @@ update.transparency <- function(input, session, data) {
       # create new layers for clusters/factors with alpha specified
       m1 <- tm_shape(data$clusters) + tm_fill('clusters', palette = 'Set1',
                                            alpha = input$alpha,
-                                           group = 'Clusters',
-                                           zindex = 500)
+                                           group = 'Clusters')
     } else {
       print('in else')
       m1 <- tm_shape(data$factors) + tm_fill(input$inv, palette = pal, 
@@ -204,15 +264,14 @@ update.transparency <- function(input, session, data) {
                                         alpha = input$alpha,
                                         colorNA = NULL, 
                                         group = input$inv,
-                                        title = input$inv,
-                                        zindex = 500)
+                                        title = input$inv)
     }
     m.linareal <- tm_shape(data$linear) + tm_lines(col = 'black',
                                               alpha = input$alpha,
-                                              group = 'linfeat', zindex = 560) +
+                                              group = 'Linear features') +
       tm_shape(data$areal) + tm_fill(col = 'red',
                                 alpha = input$alpha,
-                                group = 'arealfeat', zindex = 570)
+                                group = 'Areal features')
     tmapProxy('map1',
               x = {tm_remove_layer(500) +
                    tm_remove_layer(560) +
@@ -233,10 +292,14 @@ map.selected.cells <- function(input, output, session, data) {
   #                                  group = 'strat.random', zindex = 600)
 
   tmapProxy('map1', session, x = {
-    tm_shape(data$n2) + tm_borders(col = 'green', lwd = 2,
-                                   group = 'simp.random', zindex = 800) +
-    tm_shape(data$n2) + tm_borders(col = 'yellow', lwd = 2,
-                                   group = 'strat.random', zindex = 800)
+    n1rnd3 <- st_as_sf(terra::spatSample(terra::vect(data$n1), 3, strata='id'))
+    n2rnd3 <- st_as_sf(terra::spatSample(terra::vect(data$n2), 3, strata='id'))
+    tm_shape(data$n2) + tm_borders(col = 'blue', lwd = 2,
+                                   group = 'Stratified random') +
+    tm_shape(n2rnd3) + tm_dots(size=0.02, col='blue', group="Camera traps (stratified)") +
+    tm_shape(data$n1) + tm_borders(col = 'black', lwd = 2,
+                                   group = 'Simple random') +
+    tm_shape(n1rnd3) + tm_dots(size=0.02, col='black', group="Camera traps (simple)")
   })
 }
 

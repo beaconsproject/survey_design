@@ -1,7 +1,10 @@
 .Rproj.user
 .Rhistory
+archive
+code
 data
 power
 vignettes
 Rgui.lnk
 rsconnect
+test.R

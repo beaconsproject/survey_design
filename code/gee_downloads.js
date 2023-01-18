@@ -1,5 +1,5 @@
 // Extract and download data from GEE
-// PV 2023-01-07
+// PV 2023-01-11
 
 // Wolverine planning region (full extent)
 var region = ee.FeatureCollection('projects/ee-vernier/assets/wolverine_grids').geometry();
