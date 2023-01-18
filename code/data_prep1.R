@@ -4,9 +4,8 @@
 library(sf)
 library(dplyr)
 
-setwd('survey_design')
-#st_layers('data/wolverines_v1.gpkg')
-#st_layers('www/wolverines.gpkg')
+setwd('wolverines')
+dropbox <- 'C:/Users/PIVER37/Dropbox (BEACONs)/wolverines/data/'
 
 # Read the 707 ~27km2 grids that were selected in ArcMap
 grid <- st_read('data/thtt_boreal_cordillera.gdb', 'grids750') %>%

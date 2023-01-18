@@ -6,9 +6,8 @@ library(dplyr)
 library(terra)
 library(exactextractr)
 
-setwd('survey_design')
-#st_layers('data/wolverines_v1.gpkg')
-#st_layers('www/wolverines.gpkg')
+setwd('wolverines')
+dropbox <- 'C:/Users/PIVER37/Dropbox (BEACONs)/wolverines/data/'
 
 bnd <- st_read('www/wolverines.gpkg', 'bnd')
 grid <- st_read('www/wolverines.gpkg', 'grids')
