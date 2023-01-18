@@ -11,4 +11,4 @@ The app can be run from a local machine using the following steps:
 
   3. Start the Shiny app:
 
-    shiny::runGitHub("beaconsproject/survey_design")
+    shiny::runGitHub("beaconsproject/survey_design/wolverines.R")
