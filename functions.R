@@ -15,8 +15,8 @@ valid <- function(x) {
 # This is essentially a list that can be passed into other functions
 load.data <- function() {
   # initialize study area boundary
-  lats <- c(64.3, 64.3, 63.2, 63.2)
-  lons <- c(-141, -137, -137, -141)
+  lats <- c(64.4, 64.4, 63.15, 63.15)
+  lons <- c(-141, -137.1, -137.1, -141)
   df <- data.frame(lon = lons, lat = lats)
   
   study_boundary_init = st_as_sf(df, coords = c('lon', 'lat'), crs = 4326) %>%
@@ -227,7 +227,10 @@ render.map1 <- function(input, output, session, data) {
     # print('reached end of tmap rendering')
     m
     lf <- tmap_leaflet(m)
-    lf %>% leaflet::hideGroup(c("Areal disturbances","Linear disturbances","Areal features","Linear features","Elevation","Stratified random","TH traditional territory","Settlement lands","Camera traps (stratified)"))
+    lf %>% leaflet::hideGroup(c("Areal disturbances","Linear disturbances",
+                                "Areal features","Linear features","Elevation",
+                                "Stratified random","TH traditional territory",
+                                "Settlement lands","Camera traps (stratified)"))
   }) # renderTmap
   print('finished render.map1')
 } # render.map1
