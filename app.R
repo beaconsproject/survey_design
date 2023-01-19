@@ -82,7 +82,9 @@ ui = dashboardPage(
     
     h5('(3) Select grids'),
     # select random sites
-    checkboxInput('thlands', label = 'Force grids >50% settlement', value = F),
+    checkboxInput('thlands', label = 'Force grids >X% settlement', value = F),
+    sliderInput('thlands_pct', 'Percent of cell required to be settlement lands?',
+                min = 1, max = 100, value = 50, step = 5, ticks = F),
 
     # slider for how many cells to select from each bin
     sliderInput("size", label="Sample size per strata:", min=0, max=100, 

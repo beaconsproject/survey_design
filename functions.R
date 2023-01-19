@@ -411,7 +411,8 @@ strat.sample <- function(input, data) {
     #   samples per cluster * number of clusters
     if (input$thlands==TRUE) {
         # force TH settlement land grids
-        th <- filter(data$factors, settlements_pct>50)
+        # cells that are primarily
+        th <- filter(data$factors, settlements_pct > input$thlands_pct)
         not_th <- filter(data$factors, !id %in% th$id) # grids with <x% settlement lands
         nsize <- (input$size*as.numeric(input$clusters)) - nrow(th) # number of remaining cells to sample from
         if (nsize<=0) {
