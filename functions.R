@@ -45,11 +45,11 @@ load.data <- function() {
 update.inputs <- function(input, session, data) {
   # print('in update inputs')
   updateSelectInput(inputId = 'inv',
-                    choices = names(data$factors)[3:22],
+                    choices = names(data$factors)[4:24],
                     selected = 'merge100_pct')
   
   updateSelectInput(inputId = 'factors',
-                    choices = names(data$factors)[3:22],
+                    choices = names(data$factors)[4:24],
                     selected = c('merge100_pct','elev_median','elev_sd','forest_pct',
                                  'water_pct')
   )
@@ -406,8 +406,22 @@ strat.sample <- function(input, data) {
     # n1 is random sampling; ie same number is not sampled from each cluster
     # sample from data$clusters (defined above), number to be samples is number of
     #   samples per cluster * number of clusters
-    data$n1 <- sample_n(data$clusters, input$size * as.numeric(input$clusters))
-    
+    if (input$thlands==TRUE) {
+        # force TH settlement land grids
+        th <- filter(data$factors, settlements_pct>50)
+        not_th <- filter(data$factors, !id %in% th$id) # grids with <x% settlement lands
+        nsize <- (input$size*as.numeric(input$clusters)) - nrow(th) # number of remaining cells to sample from
+        if (nsize<=0) {
+            data$n1 <- filter(data$clusters, id %in% th$id)
+        } else {
+            nrnd <- sample_n(not_th, nsize)
+            total <- bind_rows(th, nrnd)
+            data$n1 <- filter(data$clusters, id %in% total$id)
+        }
+    } else {
+        data$n1 <- sample_n(data$clusters, input$size * as.numeric(input$clusters))
+    }
+
     # n2 is stratified random sampling; ie same number sampled from each cluster
     data$n2 <- data$clusters %>%
           group_by(clusters) %>%

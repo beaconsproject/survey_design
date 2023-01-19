@@ -82,6 +82,8 @@ ui = dashboardPage(
     
     h5('(3) Select grids'),
     # select random sites
+    checkboxInput('thlands', label = 'Force grids >50% settlement', value = F),
+
     # slider for how many cells to select from each bin
     sliderInput("size", label="Sample size per strata:", min=0, max=100, 
                 value=25, step=5, ticks=FALSE),

@@ -1,5 +1,5 @@
 # Summarize key datasets by grids
-# PV 2023-01-11
+# PV 2023-01-18
 
 library(sf)
 library(dplyr)
@@ -17,6 +17,7 @@ area500 <- st_read('www/wolverines.gpkg', 'areal_features_500m')
 line <- st_read('www/wolverines.gpkg', 'linear_features')
 line100 <- st_read('www/wolverines.gpkg', 'linear_features_100m')
 line500 <- st_read('www/wolverines.gpkg', 'linear_features_500m')
+thlands <- st_read('www/wolverines.gpkg', 'th_settlement_land')
 
 # Areal disturbances - sum area by grid
 xarea <- st_union(area) # necessary to avoid double counting areas of overlap
@@ -76,7 +77,7 @@ xmerge500 <- mutate(xmerge500, area_m2=st_area(xmerge500), # recalculate area
     st_drop_geometry(xmerge500)
 
 # Placer claims
-pc <- st_read('data/yt_placer_claims_50k.gpkg') %>%
+pc <- st_read(paste0(dropbox,'yt_placer_claims_50k.gpkg')) %>%
     st_intersection(grid)
 pc <- pc %>% mutate(area_m2=st_area(pc)) # calculate area
 xpc <- st_drop_geometry(pc) %>%
@@ -86,7 +87,7 @@ xpc <- st_drop_geometry(pc) %>%
     mutate(placer_pct=area_m2/grid_m2*100, area_m2=NULL, grid_m2=NULL)
 
 # Quartz claims (has geometry problems)
-qc <- st_read('data/yt_quartz_claims_50k.gpkg')
+qc <- st_read(paste0(dropbox,'yt_quartz_claims_50k.gpkg'))
 qc <- st_as_sfc(qc) %>%
     lwgeom::lwgeom_make_valid() %>%
     st_as_sf() %>%
@@ -99,7 +100,7 @@ xqc <- st_drop_geometry(qc) %>%
     mutate(quartz_pct=area_m2/grid_m2*100, area_m2=NULL, grid_m2=NULL)
 
 # Recent fires (1980-2021)
-fires <- st_read('data/yt_fire_history.gpkg') %>%
+fires <- st_read(paste0(dropbox,'yt_fire_history.gpkg')) %>%
     filter(FIRE_YEAR>=1980 & FIRE_YEAR<=2022) %>%
     select(FIRE_ID, FIRE_YEAR)
 fires <- st_as_sfc(fires) %>%
@@ -114,11 +115,11 @@ xfires <- st_drop_geometry(fires) %>%
     mutate(recent_fires_pct=area_m2/grid_m2*100, area_m2=NULL, grid_m2=NULL)
 
 # Hydrology
-streams <- st_read('data/Watercourses_50k_Canvec.gdb', 'Watercourses_50k_Canvec') %>%
+streams <- st_read(paste0(dropbox,'Watercourses_50k_Canvec.gdb'), 'Watercourses_50k_Canvec') %>%
     st_intersection(bnd) %>%
     st_buffer(10) %>% 
     st_union()
-rivers <-  st_read('data/Waterbodies_50k_Canvec.gdb', 'Waterbodies_50k_Canvec') %>%
+rivers <-  st_read(paste0(dropbox,'Waterbodies_50k_Canvec.gdb'), 'Waterbodies_50k_Canvec') %>%
     st_intersection(bnd) %>%
     st_buffer(10) %>% 
     st_union()
@@ -133,19 +134,27 @@ xwater <- st_drop_geometry(water) %>%
     mutate(water_pct=area_m2/grid_m2*100, area_m2=NULL, grid_m2=NULL)
 
 # Benchmark areas
-ba <- st_read('data/benchmarks.gpkg', quiet=T) %>%
+ba <- st_read(paste0(dropbox,'benchmarks.gpkg'), quiet=T) %>%
         st_intersection(grid)
 ba <- mutate(ba, area_m2=st_area(ba))
 xba <- st_drop_geometry(ba) %>%
     group_by(id) %>%
     summarize(benchmark_pct=round(sum(area_m2)/sum(grid_m2)*100,1))
 
+# TH settlement lands
+lands <- st_union(thlands)
+lands <- st_intersection(grid, lands)
+lands <- mutate(lands, area_m2=st_area(lands), # recalculate area
+    settlements_pct=round(area_m2/grid_m2*100,2),
+    nts=NULL, area_m2=NULL, grid_m2=NULL) %>%
+    st_drop_geometry(lands)
+
 # Add median elevation
-dem <- rast('data/dem.tif')
+dem <- rast(paste0(dropbox,'dem.tif'))
 xdem <- exact_extract(dem, grid, c('min','max','median','stdev'))
 
 # Read landcover and count pixels by grid cell
-lcc <- rast('data/lcc2019.tif')
+lcc <- rast(paste0(dropbox,'lcc2019.tif'))
 cells_count <- exact_extract(lcc, grid, 'count')
 
 # Add %forest (classes 210, 220, 230)
@@ -170,7 +179,8 @@ tib <- left_join(tib, xarea) %>%
     left_join(xqc) %>%
     left_join(xfires) %>%
     left_join(xwater) %>%
-    left_join(xba)
+    left_join(xba) %>%
+    left_join(lands)
     #mutate(placer_claims_ha = replace_na(placer_claims_ha, units::set_units(0,'ha')),
     #       quartz_claims_ha = replace_na(quartz_claims_ha, units::set_units(0,'ha')),
     #       claims_ha=placer_claims_ha+quartz_claims_ha)
