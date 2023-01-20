@@ -11,8 +11,8 @@ library(tidyverse)
 library(shinydashboard)
 library(shinybusy)
 
-functionspath <- list.files(pattern = 'functions.R', full.names = T)
-source(functionspath)
+functionspath <- list.files(pattern = '*functions.R', full.names = T)
+for (i in functionspath) source(i)
 
 # clicklist <- list()
 
@@ -140,10 +140,6 @@ server <- function(input, output, session) {
   })
   
   observe({
-    update.transparency(input, session, data)
-  })
-  
-  observe({
     render.tab1(output, data)  
   })
   
@@ -156,6 +152,10 @@ server <- function(input, output, session) {
   observeEvent(input$map1_click, {
     data <- modify.study.boundary(input, output, session, data)
   })
+  
+  # observe({
+  #   update.transparency(input, session, data)
+  # })
 }
 shinyApp(ui, server)
 

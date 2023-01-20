@@ -1,7 +1,7 @@
 # create reactive clusters() object (data$clusters)
 create.clusters <- function(input, session, data) {
   # print('in create.clusters')
-  shinybusy::add_busy_spinner()
+  # shinybusy::add_busy_spinner()
   # duplicate data$factors, replace NAs with 0s 
   x <- data$factors %>%
     mutate(
@@ -39,7 +39,7 @@ create.clusters <- function(input, session, data) {
     mutate(clusters = clust)
   # print('mutate(clusters = clust)')
   
-  shinybusy::remove_modal_spinner()
+  # shinybusy::remove_modal_spinner()
   # print(x)
   # print(class(x))
   data$clusters <- x
@@ -146,43 +146,70 @@ render.tab2 <- function(output, session, data) {
 } # render.tab2()
 
 strat.sample <- function(input, data) {
-    print('in strat sample')
-    # n1 is random sampling; ie same number is not sampled from each cluster
-    # sample from data$clusters (defined above), number to be samples is number of
-    #   samples per cluster * number of clusters
-    if (input$thlands==TRUE) {
-        # force TH settlement land grids
-        # cells that are primarily
-        th <- filter(data$factors, settlements_pct > input$thlands_pct)
-        not_th <- filter(data$factors, !id %in% th$id) # grids with <x% settlement lands
-        nsize <- (input$size*as.numeric(input$clusters)) - nrow(th) # number of remaining cells to sample from
-        if (nsize<=0) {
-            data$n1 <- filter(data$clusters, id %in% th$id)
-        } else {
-            nrnd <- sample_n(not_th, nsize)
-            total <- bind_rows(th, nrnd)
-            data$n1 <- filter(data$clusters, id %in% total$id)
-        }
+  print('in strat sample')
+  ####
+  # n1 is random sampling; ie same number is not sampled from each cluster
+  # sample from data$clusters (defined above), number to be samples is number of
+  #   samples per cluster * number of clusters
+  if (input$thlands==TRUE) {
+    # force TH settlement land grids
+    # cells that are primarily
+    th <- filter(data$factors, settlements_pct > input$thlands_pct)
+    not_th <- filter(data$factors, !id %in% th$id) # grids with <x% settlement lands
+    nsize <- (input$size*as.numeric(input$clusters)) - nrow(th) # number of remaining cells to sample from
+    
+    clusters_th <- filter(data$clusters, id %in% th$id)
+    clusters_not_th <- filter(data$clusters, !id %in% th$id)
+    
+    # check to see if there are enough cells with settlement land to only use 
+    # those for deployments
+    if (nsize<=0) {
+      # if so, only grab settlement land cells from cluster
+      data$n1 <- clusters_th
     } else {
-        data$n1 <- sample_n(data$clusters, input$size * as.numeric(input$clusters))
+      # if not, randomly select the required number from non-settlement cells
+      nrnd <- sample_n(not_th, nsize)
+      # combine them with the settlement cells
+      total <- bind_rows(th, nrnd)
+      data$n1 <- filter(data$clusters, id %in% total$id)
     }
-
-    # n2 is stratified random sampling; ie same number sampled from each cluster
-    if (input$thlands == T) {
-      # th is cells that contain settlement lands
-      th <- filter(data$factors, settlements_pct > input$thlands_pct)
-      # not_th doesn't contain settlement lands
-      not_th <- filter(data$factors, !id %in% th$id)
-      # number of remaining cells to sample from after settlement land cells have
-      # been sampled from
-      nsize <- input$size * as.numeric(input$clusters) - nrow(th)
-    }
+  } else {
+    data$n1 <- sample_n(data$clusters, input$size * as.numeric(input$clusters))
+  }
+  
+  ####
+  # n2 is stratified random sampling; ie same number sampled from each cluster
+   
+  if (input$thlands) {
+    print('prioritizing th lands')
+    
+    strat.random <- data.frame(matrix(nrow = 0, ncol = ncol(data$clusters)))
+    colnames(strat.random) = colnames(data$clusters)
+    
+    for (i in 1:input$clusters) {
+      tmp.th <- filter(clusters_th, clusters %in% i)
+      # fewer cells with settlement land than cells that need to be selected
+      if (nrow(tmp.th) < input$size) {
+        tmp.not.th <- sample_n(clusters_not_th, input$size - nrow(tmp))
+        tmp <- rbind(tmp.th, tmp.not.th)
+      } else {
+        tmp <- sample_n(tmp.th, input$size)
+      }
+      
+      strat.random <- rbind(strat.random, tmp)
+      
+    } 
+    
+    data$n2 <- strat.random
+    
+  } else {
     
     data$n2 <- data$clusters %>%
-          group_by(clusters) %>%
-          sample_n(size = input$size)
+      group_by(clusters) %>%
+      sample_n(size = input$size)
     
-    print('finished strat.sample')
+  }
+  print('finished strat.sample')
   
   return(data)
 }

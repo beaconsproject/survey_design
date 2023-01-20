@@ -121,7 +121,7 @@ modify.study.boundary <- function(input, output, session, data) {
       st_transform(3578) %>% 
       summarise(geometry = st_combine(geometry)) %>%
       st_cast('POLYGON')
-    
+
     data$study_boundary <- study_boundary_mod
     
     tmapProxy('map1',
