@@ -3,6 +3,7 @@ library(shiny)
 library(sf)
 library(sp)
 library(DT)
+library(tmap)
 library(dplyr)
 library(magrittr)
 library(leaflet)
@@ -16,10 +17,10 @@ for (i in functionspath) source(i)
 # clicklist <- list()
 
 ## Set up map options
-#tmap_mode('view')
-#tmap_options(check.and.fix = T)
+tmap_mode('view')
+tmap_options(check.and.fix = T)
 # Basemap 
-#tmap_options(basemaps = c("Esri.WorldTopoMap","Esri.NatGeoWorldMap","Esri.WorldImagery"))
+tmap_options(basemaps = c("Esri.WorldTopoMap","Esri.NatGeoWorldMap","Esri.WorldImagery"))
 #tm_basemap(leaflet::providers$Esri.WorldImagery)
 
 shinybusy::use_busy_spinner()
@@ -99,7 +100,7 @@ ui = dashboardPage(
               fluidRow(
                 tabBox(
                   id = 'one', width = '12',
-                  tabPanel('Mapview', leafletOutput('map1', height = 750)),
+                  tabPanel('Mapview', leafletOutput('map1', height = 900)),
                   tabPanel('Clusters', DT::dataTableOutput('tab1')),
                   tabPanel('Similarity', DT::dataTableOutput('tab2'))
                 ) # tabBox
@@ -144,8 +145,8 @@ server <- function(input, output, session) {
   
   observeEvent(input$goButton, {
     data <- strat.sample(input, data)
-#    map.selected.cells(input, output, session, data)
-#    render.tab2(output, session, data)
+    map.selected.cells(input, output, session, data)
+    render.tab2(output, session, data)
   })
   
   observeEvent(input$map1_click, {

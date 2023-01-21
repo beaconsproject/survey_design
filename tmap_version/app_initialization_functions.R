@@ -25,19 +25,19 @@ load.data <- function() {
   df <- data.frame(lon = lons, lat = lats)
   
   study_boundary_init = st_as_sf(df, coords = c('lon', 'lat'), crs = 4326) %>%
-    #st_transform(3578) %>%
+    st_transform(3578) %>%
     summarise(geometry = st_combine(geometry)) %>%
     st_cast('POLYGON')
   
   data <- reactiveValues(
-    grid = st_read('www/wolverines.gpkg', 'grids', quiet = T) %>% st_transform(4326),
-    linear = st_read('www/wolverines.gpkg', 'linear_features', quiet = T) %>% st_transform(4326),
-    areal = st_read('www/wolverines.gpkg', 'areal_features', quiet=T) %>% st_transform(4326),
-    factors = st_read('www/wolverines.gpkg', 'survey_factors', quiet=T) %>% st_transform(4326),
+    grid = st_read('www/wolverines.gpkg', 'grids', quiet = T),
+    linear = st_read('www/wolverines.gpkg', 'linear_features', quiet = T),
+    areal = st_read("www/wolverines.gpkg", 'areal_features', quiet=T),
+    factors = st_read("www/wolverines.gpkg", 'survey_factors', quiet=T),
     # Trondek Hwechin Traditional Territory
-    thtt = st_read('www/wolverines.gpkg', 'th_trad_territ', quiet = T) %>% st_transform(4326),
+    thtt = st_read('www/wolverines.gpkg', 'th_trad_territ', quiet = T),
     # And settlement lands
-    settlement = st_read('www/wolverines.gpkg', 'th_settlement_land', quiet = T) %>% st_transform(4326),
+    settlement = st_read('www/wolverines.gpkg', 'th_settlement_land', quiet = T),
     study_boundary = study_boundary_init,
     clicklist = list()
   )

@@ -5,7 +5,7 @@ This repository contains code, data, and an app to facilitate the design of a gr
 
 ## Running the app
 
-The app is located at: https://beaconsproject.shinyapps.io/wolverines (Jan 19: The hosted version is currently unavailable. To run the app, please follow the steps below.)
+The app is located at: https://beaconsproject.shinyapps.io/wolverines
 
 The app can also be run from a local machine using the following steps:
 
