@@ -44,12 +44,13 @@ ui = dashboardPage(
                 choices = NULL,
                 selected = NULL),
     # Style for binning cells for display
-    selectInput("style", label="Select style:", 
-                choices=c("jenks","kmeans","quantile","pretty","equal"), 
-                selected="quantile"), 
+    #selectInput("style", label="Select style:", 
+    #            choices=c("jenks","kmeans","quantile","pretty","equal"), 
+    #            selected="quantile"), 
     # Set transparency
     #sliderInput("alpha", label="Transparency:", min=0, max=1, value=1, step=0.1, 
     #            ticks=FALSE),
+    checkboxInput('disturb', label = 'Load disturbance data (slow)', value = F),
     hr(),
     h5('(2) Generate clusters'),
     # features to cluster by
@@ -81,13 +82,13 @@ ui = dashboardPage(
     
     h5('(3) Select grids'),
     # select random sites
-    checkboxInput('thlands', label = 'Force grids >X% settlement', value = F),
-    sliderInput('thlands_pct', 'Percent of cell required to be settlement lands?',
-                min = 1, max = 100, value = 50, step = 5, ticks = F),
-
     # slider for how many cells to select from each bin
     sliderInput("size", label="Sample size per strata:", min=0, max=100, 
                 value=25, step=5, ticks=FALSE),
+    # settlement lands
+    checkboxInput('thlands', label = 'Include settlement land', value = F),
+    sliderInput('thlands_pct', 'Minimum percent of cell:',
+                min = 1, max = 100, value = 50, step = 5, ticks = F),
     # button to select random sites
     actionButton("goButton", "Select random grids")
 
@@ -110,11 +111,11 @@ ui = dashboardPage(
 ) # ui
 
 server <- function(input, output, session) {
-  
+
   # load factors, linear, areal, and grid into a single reactiveValues object; it
   #   is essentially a list that you can pass into function as a single argument
   data <- load.data()
-  
+
   observe({
     # This populates the dropdown fields that are dependent on factors (now 
     # data$factors)
@@ -141,7 +142,11 @@ server <- function(input, output, session) {
   observe({
     render.tab1(output, data)  
   })
-  
+
+observe({
+    render.tab2(output, data)  
+  })
+
   observeEvent(input$goButton, {
     data <- strat.sample(input, data)
 #    map.selected.cells(input, output, session, data)

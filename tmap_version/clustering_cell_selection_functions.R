@@ -130,8 +130,8 @@ render.tab2 <- function(output, session, data) {
     # View(ks_simple)
     # View(ks_stratified)
     
-    ks <- rbind(ks_simple, ks_stratified)
-    
+    ks <- bind_rows(ks_simple, ks_stratified)
+
     print('finished renderDataTable for tab2')
     
     datatable(ks, rownames = F, options = list(dom = 'tip', scrollX = T,
@@ -147,11 +147,12 @@ render.tab2 <- function(output, session, data) {
 
 strat.sample <- function(input, data) {
   print('in strat sample')
+  
   ####
   # n1 is random sampling; ie same number is not sampled from each cluster
   # sample from data$clusters (defined above), number to be samples is number of
   #   samples per cluster * number of clusters
-  if (input$thlands==TRUE) {
+  if (input$thlands) {
     # force TH settlement land grids
     # cells that are primarily
     th <- filter(data$factors, settlements_pct > input$thlands_pct)
@@ -191,12 +192,12 @@ strat.sample <- function(input, data) {
       # fewer cells with settlement land than cells that need to be selected
       if (nrow(tmp.th) < input$size) {
         tmp.not.th <- sample_n(clusters_not_th, input$size - nrow(tmp))
-        tmp <- rbind(tmp.th, tmp.not.th)
+        tmp <- bind_rows(tmp.th, tmp.not.th)
       } else {
         tmp <- sample_n(tmp.th, input$size)
       }
       
-      strat.random <- rbind(strat.random, tmp)
+      strat.random <- bind_rows(strat.random, tmp)
       
     } 
     

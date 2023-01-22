@@ -16,16 +16,21 @@ render.map1 <- function(input, output, session, data) {
   output$map1 <- renderLeaflet({
     # Set color palette based on selected characteristics
     attrib <- pull(data$factors, input$inv)
-    if (input$inv == 'forest_pct') {
-      pal <- colorQuantile("YlGn", domain=attrib, n=5, na.color="transparent")
+    if (input$inv %in% c('benchmark_pct','forest_pct')) {
+      #pal <- colorQuantile("YlGn", domain=attrib, n=5, na.color="transparent")
+      pal <- colorNumeric("YlGn", domain=attrib, na.color="transparent")
     } else if (input$inv %in% c('water_pct','wetland_pct')) {
-      pal <- colorQuantile("PuBu", domain=attrib, n=5, na.color="transparent")
-    } else if (input$inv %in% c('quartz_pct','placer_pct')) {
-      pal <- colorQuantile("YlGreysGn", domain=attrib, n=5, na.color="transparent")
+      #pal <- colorQuantile("PuBu", domain=attrib, n=5, na.color="transparent")
+      pal <- colorNumeric("PuBu", domain=attrib, na.color="transparent")
+    } else if (input$inv %in% c('quartz_pct','placer_pct','settlements_pct')) {
+      #pal <- colorQuantile("YlGreysGn", domain=attrib, n=5, na.color="transparent")
+      pal <- colorNumeric("Greys", domain=attrib, na.color="transparent")
     } else if (input$inv %in% c('elev_median','elev_min','elev_max','elev_sd')) {
-      pal <- colorQuantile("-BrBG", domain=attrib, n=5, na.color="transparent")
+      #pal <- colorQuantile("-BrBG", domain=attrib, n=5, na.color="transparent")
+      pal <- colorNumeric("BrBG", domain=attrib, na.color="transparent")
     } else {
       pal <- colorQuantile("Reds", domain=attrib, n=5, na.color="transparent")
+      pal <- colorNumeric("Reds", domain=attrib, na.color="transparent")
     }
     
     #map_bounds <- study_boundary %>% st_bbox() %>% as.character()
@@ -37,11 +42,14 @@ render.map1 <- function(input, output, session, data) {
       addProviderTiles("Esri.WorldImagery", group="Esri.WorldImagery")
     # If the user clicks the button to generate clusters
     if (input$clustButton) {
-        pal <- colorBin("RdYlBu", domain=data$factors[input$inv], bins=1:input$clusters)
-        m <- m %>% addPolygons(data=data$clusters, fillColor=~pal(clusters), fillOpacity=0.8, stroke = FALSE, group='Clusters')
+        groups <- pull(data$clusters, clusters)
+        #pal <- colorBin("RdYlBu", domain=data$factors[input$inv], bins=1:input$clusters)
+        pal <- colorFactor("RdYlBu", domain=groups, n=input$clusters)
+        m <- m %>% addPolygons(data=data$clusters, fillColor=~pal(clusters), fillOpacity=0.8, stroke = FALSE, group='Clusters') %>%
+            addLegend(pal=pal, values=groups, opacity=1, title="Clusters")
     } else {
-        m <- m %>% addPolygons(data=data$factors, fillColor=~pal(attrib), fillOpacity=1, stroke=F, group=input$inv) #%>%
-            #addLegend("bottomright", pal=pal, values=~attrib, opacity=1)
+        m <- m %>% addPolygons(data=data$factors, fillColor=~pal(attrib), fillOpacity=1, stroke=F, group=input$inv) %>%
+            addLegend(pal=pal, values=attrib, opacity=1, title=input$inv)
     }
     # If the user clicks the button to generate random samples
     if (input$goButton) {
@@ -55,13 +63,15 @@ render.map1 <- function(input, output, session, data) {
             addCircleMarkers(data=n1rnd3, radius=1, color='black', weight=3, fillOpacity=1, group="Camera traps (simple)")
     }
     # Base map
-    m <- m %>% addPolygons(data=data$grid, color='black', fill=F, weight=1, group='Grid') %>%
-      addPolylines(data=data$linear, color='black', weight=1, group='Linear features') %>%
-      addPolygons(data=data$areal, color='red', weight=1, group='Areal features') %>%
-      addPolygons(data=data$thtt, fill=F, color='black', weight=1, group='TH traditional territory') %>%
+    m <- m %>% addPolygons(data=data$grid, color='black', fill=F, weight=1, group='Grid')
+      if (input$disturb) {
+          m <- m %>% addPolylines(data=data$linear, color='black', weight=1, group='Linear features') %>%
+          addPolygons(data=data$areal, color='red', weight=1, group='Areal features')
+      }
+      m <- m %>% addPolygons(data=data$thtt, fill=F, color='black', weight=1, group='TH traditional territory') %>%
       addPolygons(data=data$settlement, weight=1, group='Settlement lands') %>%
       addPolygons(data=data$study_boundary, fill=F, weight=1, color='black', group='Study boundary') %>%
-      addLayersControl(position = "topright",
+      addLayersControl(position = "topleft",
                        baseGroups=c("Esri.NatGeoWorldMap", "Esri.WorldImagery"),
                        overlayGroups = c('Camera traps (simple)','Simple random','Camera traps (stratified)','Stratified random','Clusters',input$inv,'Grid','Linear features','Areal features','TH traditional territory','Settlement lands','Study boundary'),
                        options = layersControlOptions(collapsed=TRUE)) %>%
