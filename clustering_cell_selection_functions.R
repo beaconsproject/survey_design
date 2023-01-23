@@ -28,7 +28,7 @@ create.clusters <- function(input, session, data) {
   # Now actually cluster cells
   # kmeans() returns a list; $cluster object is a vector where the name is the
   # cell number and the value is what cluster it's in
-  clust <- kmeans(scale(y$merge100_pct), input$clusters)$cluster
+  clust <- kmeans(scale(y), input$clusters)$cluster
   
   # View(clust)
   # print('kmeans')
@@ -89,7 +89,7 @@ render.tab1 <- function(output, data) {
   print('finished render.tab1')
 }
 
-render.tab2 <- function(output, session, data) {
+render.tab2 <- function(output, data) {
   print('in render.tab2')
   output$tab2 <- DT::renderDataTable({
     print('in renderDataTable for tab2')
@@ -130,8 +130,8 @@ render.tab2 <- function(output, session, data) {
     # View(ks_simple)
     # View(ks_stratified)
     
-    ks <- rbind(ks_simple, ks_stratified)
-    
+    ks <- bind_rows(ks_simple, ks_stratified)
+
     print('finished renderDataTable for tab2')
     
     datatable(ks, rownames = F, options = list(dom = 'tip', scrollX = T,
@@ -144,6 +144,7 @@ render.tab2 <- function(output, session, data) {
   }) # renderDataTable
   print('finished render.tab2')
 } # render.tab2()
+
 
 strat.sample <- function(input, data) {
   print('in strat sample')
