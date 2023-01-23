@@ -23,7 +23,7 @@ tmap_options(check.and.fix = T)
 tmap_options(basemaps = c("Esri.WorldTopoMap","Esri.NatGeoWorldMap","Esri.WorldImagery"))
 #tm_basemap(leaflet::providers$Esri.WorldImagery)
 
-shinybusy::use_busy_spinner()
+# shinybusy::use_busy_spinner()
 
 ui = dashboardPage(
   dashboardHeader(title = 'Wolverines Survey'),
