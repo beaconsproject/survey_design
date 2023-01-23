@@ -28,7 +28,7 @@ create.clusters <- function(input, session, data) {
   # Now actually cluster cells
   # kmeans() returns a list; $cluster object is a vector where the name is the
   # cell number and the value is what cluster it's in
-  clust <- kmeans(scale(y$merge100_pct), input$clusters)$cluster
+  clust <- kmeans(scale(y), input$clusters)$cluster
   
   # View(clust)
   # print('kmeans')
