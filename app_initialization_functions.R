@@ -21,7 +21,7 @@ valid <- function(x) {
 load.data <- function() {
   # initialize study area boundary
   lats <- c(64.4, 64.4, 63.15, 63.15)
-  lons <- c(-141, -137.1, -137.1, -141)
+  lons <- c(-139.9, -137.1, -137.1, -139.9)
   df <- data.frame(lon = lons, lat = lats)
   
   study_boundary_init = st_as_sf(df, coords = c('lon', 'lat'), crs = 4326) %>%
@@ -36,6 +36,7 @@ load.data <- function() {
     factors = st_read('www/wolverines.gpkg', 'survey_factors', quiet=T) %>% st_transform(4326),
     # Trondek Hwechin Traditional Territory
     thtt = st_read('www/wolverines.gpkg', 'th_trad_territ', quiet = T) %>% st_transform(4326),
+    lup = st_read('www/wolverines.gpkg', 'dawson_lup', quiet=T) %>% st_transform(4326),
     # And settlement lands
     settlement = st_read('www/wolverines.gpkg', 'th_settlement_land', quiet = T) %>% st_transform(4326),
     study_boundary = study_boundary_init,
@@ -55,7 +56,6 @@ update.inputs <- function(input, session, data) {
   
   updateSelectInput(inputId = 'factors',
                     choices = names(data$factors)[4:24],
-                    selected = c('merge100_pct','elev_median','elev_sd','forest_pct',
-                                 'water_pct')
+                    selected = c('merge100_pct') #,'elev_median','elev_sd','forest_pct','water_pct')
   )
 }

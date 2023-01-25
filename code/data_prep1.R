@@ -5,6 +5,7 @@ library(sf)
 library(dplyr)
 
 setwd('wolverines')
+gulo <- 'C:/Users/PIVER37/Documents/gisdata/123/wolverines.gdb'
 dropbox <- 'C:/Users/PIVER37/Dropbox (BEACONs)/wolverines/data/'
 
 # Read the 707 ~27km2 grids that were selected in ArcMap
@@ -80,3 +81,9 @@ fires2 <- st_as_sfc(fires2) %>%
     st_intersection(bnd) %>%
     st_cast('MULTIPOLYGON')
 st_write(fires2, 'www/wolverines.gpkg', 'recent_fires', delete_layer=T)
+
+# Add Dawson LUP (https://dawson.planyukon.ca/index.php/the-dawson-region/spatial-data)
+lup <- st_read(gulo, 'dawson_lup') %>%
+    st_cast('MULTIPOLYGON')
+st_write(lup, 'www/wolverines.gpkg', 'dawson_lup', delete_layer=T)
+

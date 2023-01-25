@@ -21,26 +21,29 @@ create.clusters <- function(input, session, data) {
   # feature it is and has some numbers describing it)
   # print('intersecting study boundary and factors')
   y <- select(x, unlist(input$factors), id, grid_m2) %>%
-    st_intersection(data$study_boundary) %>%
-    filter(grid_m2 > 23000000) %>%
+    #st_intersection(data$study_boundary) %>%
+    #filter(grid_m2 > 23000000) %>%
+    #filter(merge100_pct>0) %>%
     st_drop_geometry()
-  
-  # Now actually cluster cells
+
+  # Cluster
   # kmeans() returns a list; $cluster object is a vector where the name is the
   # cell number and the value is what cluster it's in
-  
-  # pull out undisturbed cells 
-  if ('merge100_pct' %in% input$factors) {
-    undisturbed <- y %>%
-      filter(merge100_pct == 0)
-    y <- y %>%
-      filter(merge100_pct > 0)
-    
-    clust_undisturbed <- rep(0, nrow(undisturbed))
+  if (input$zero) {
+  # pull out undisturbed cells and cluster
+    if ('merge100_pct' %in% input$factors) {
+      undisturbed <- y %>%
+        filter(merge100_pct == 0)
+      y <- y %>%
+        filter(merge100_pct > 0)
+     
+      clust_undisturbed <- rep(0, nrow(undisturbed))
+    }
   }
-  # cluster remaining cells
+
+  # cluster
   clust <- kmeans(scale(y), input$clusters)$cluster
-  
+ 
   # View(clust)
   # print('kmeans')
   
@@ -48,14 +51,22 @@ create.clusters <- function(input, session, data) {
   x2 <- x %>%
     filter(id %in% y$id) %>%
     mutate(clusters = clust)
+
+  # first we cluster, then we replace clusters with 0 if merge100_pct==0
+  #if (input$zero) {
+  #  x <- mutate(x, clusters=ifelse(merge100_pct==0, 0, clusters))
+  #}
   
-  if ('merge100_pct' %in% input$factors) {
-    x_undisturbed <- x %>%
-      filter(id %in% undisturbed$id) %>%
-      mutate(clusters = clust_undisturbed)
-    
-    x2 <- rbind(x2, x_undisturbed)
+  if (input$zero) {
+    if ('merge100_pct' %in% input$factors) {
+      x_undisturbed <- x %>%
+        filter(id %in% undisturbed$id) %>%
+        mutate(clusters = clust_undisturbed)
+      
+      x2 <- rbind(x2, x_undisturbed)
+    }
   }
+
   # print('mutate(clusters = clust)')
   
   # shinybusy::remove_modal_spinner()

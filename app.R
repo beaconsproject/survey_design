@@ -22,7 +22,7 @@ for (i in functionspath) source(i)
 #tmap_options(basemaps = c("Esri.WorldTopoMap","Esri.NatGeoWorldMap","Esri.WorldImagery"))
 #tm_basemap(leaflet::providers$Esri.WorldImagery)
 
-# shinybusy::use_busy_spinner()
+shinybusy::use_busy_spinner()
 
 ui = dashboardPage(
   dashboardHeader(title = 'Wolverines Survey'),
@@ -65,13 +65,13 @@ ui = dashboardPage(
     #checkboxInput('th.settlement', label = 'Show TH Settlement Lands',
     #              value = T
     #             ),
-    
+    checkboxInput('zero', label = 'Exclude 0 values', value = F),
     # actionButton('redraw', label = 'Redraw study boundaries')
     
     #### Clusters 
     ####
     # how many clusters
-    sliderInput("clusters", label="Number of clusters:", min=0, max=20, value=4, 
+    sliderInput("clusters", label="Number of clusters:", min=0, max=10, value=2, 
                 ticks=FALSE),
     # button to generate clusters
     actionButton("clustButton", "Generate clusters"),
@@ -153,9 +153,9 @@ observe({
 #    render.tab2(output, session, data)
   })
   
-  # observeEvent(input$map1_click, {
-  #   data <- modify.study.boundary(input, output, session, data)
-  # })
+  observeEvent(input$map1_click, {
+    data <- modify.study.boundary(input, output, session, data)
+  })
   
   # observe({
   #   update.transparency(input, session, data)
