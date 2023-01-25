@@ -22,7 +22,7 @@ for (i in functionspath) source(i)
 #tmap_options(basemaps = c("Esri.WorldTopoMap","Esri.NatGeoWorldMap","Esri.WorldImagery"))
 #tm_basemap(leaflet::providers$Esri.WorldImagery)
 
-shinybusy::use_busy_spinner()
+#shinybusy::use_busy_spinner()
 
 ui = dashboardPage(
   dashboardHeader(title = 'Wolverines Survey'),
@@ -153,9 +153,9 @@ observe({
 #    render.tab2(output, session, data)
   })
   
-  observeEvent(input$map1_click, {
-    data <- modify.study.boundary(input, output, session, data)
-  })
+  # observeEvent(input$map1_click, {
+  #   data <- modify.study.boundary(input, output, session, data)
+  # })
   
   # observe({
   #   update.transparency(input, session, data)

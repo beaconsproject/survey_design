@@ -23,7 +23,6 @@ create.clusters <- function(input, session, data) {
   y <- select(x, unlist(input$factors), id, grid_m2) %>%
     #st_intersection(data$study_boundary) %>%
     #filter(grid_m2 > 23000000) %>%
-    #filter(merge100_pct>0) %>%
     st_drop_geometry()
 
   # Cluster

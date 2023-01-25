@@ -1,6 +1,9 @@
+.gitignore
 archive
 code
 data
 README.md
 wolverines.mxd
 wolverines.Rproj
+upload2shinyapps.R
+Rgui.link
