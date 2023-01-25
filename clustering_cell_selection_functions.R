@@ -28,21 +28,40 @@ create.clusters <- function(input, session, data) {
   # Now actually cluster cells
   # kmeans() returns a list; $cluster object is a vector where the name is the
   # cell number and the value is what cluster it's in
+  
+  # pull out undisturbed cells 
+  if ('merge100_pct' %in% input$factors) {
+    undisturbed <- y %>%
+      filter(merge100_pct == 0)
+    y <- y %>%
+      filter(merge100_pct > 0)
+    
+    clust_undisturbed <- rep(0, nrow(undisturbed))
+  }
+  # cluster remaining cells
   clust <- kmeans(scale(y), input$clusters)$cluster
   
   # View(clust)
   # print('kmeans')
   
   # add field to x with what cluster the cell is in
-  x <- x %>%
+  x2 <- x %>%
     filter(id %in% y$id) %>%
     mutate(clusters = clust)
+  
+  if ('merge100_pct' %in% input$factors) {
+    x_undisturbed <- x %>%
+      filter(id %in% undisturbed$id) %>%
+      mutate(clusters = clust_undisturbed)
+    
+    x2 <- rbind(x2, x_undisturbed)
+  }
   # print('mutate(clusters = clust)')
   
   # shinybusy::remove_modal_spinner()
   # print(x)
   # print(class(x))
-  data$clusters <- x
+  data$clusters <- x2
   # print('finished create.clusters')
   return(data)
 }

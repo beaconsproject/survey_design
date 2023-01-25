@@ -153,9 +153,9 @@ observe({
 #    render.tab2(output, session, data)
   })
   
-  observeEvent(input$map1_click, {
-    data <- modify.study.boundary(input, output, session, data)
-  })
+  # observeEvent(input$map1_click, {
+  #   data <- modify.study.boundary(input, output, session, data)
+  # })
   
   # observe({
   #   update.transparency(input, session, data)

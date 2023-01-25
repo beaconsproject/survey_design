@@ -79,56 +79,56 @@ render.map1 <- function(input, output, session, data) {
   })
 }
 
-#map.selected.cells <- function(input, output, session, data) {
-#  # add randomly selected cells
-#  print('in map.selected.cells')
-#  leafletProxy('map1', session, {
-#     n1rnd3 <- st_as_sf(terra::spatSample(terra::vect(data$n1), 3, strata='id'))
-#     n2rnd3 <- st_as_sf(terra::spatSample(terra::vect(data$n2), 3, strata='id'))
-#     addPolygons(data$n2, fill=F, color='yellow', weight=2, group='Stratified random') %>%
-#     addMarkers(n2rnd3, group="Camera traps (stratified)") %>%
-#     addPolygons(data$n1, group='Simple random') %>%
-#     addMarkers(n1rnd3, group="Camera traps (simple)")
-#  })
-#}
+map.selected.cells <- function(input, output, session, data) {
+ # add randomly selected cells
+ print('in map.selected.cells')
+ leafletProxy('map1', session, {
+    n1rnd3 <- st_as_sf(terra::spatSample(terra::vect(data$n1), 3, strata='id'))
+    n2rnd3 <- st_as_sf(terra::spatSample(terra::vect(data$n2), 3, strata='id'))
+    addPolygons(data$n2, fill=F, color='yellow', weight=2, group='Stratified random') %>%
+    addMarkers(n2rnd3, group="Camera traps (stratified)") %>%
+    addPolygons(data$n1, group='Simple random') %>%
+    addMarkers(n1rnd3, group="Camera traps (simple)")
+ })
+}
 
-#modify.study.boundary <- function(input, output, session, data) {
-#  print('click')
-#  if (length(data$clicklist) ==4) {
-#    data$clicklist <- list()
-#  }
-#  
-#  click <- input$map1_click
-#  
-#  data$clicklist[[length(data$clicklist) + 1]] <- click
-#  
-#  if (length(data$clicklist) == 4) {
-#    lats <- c(data$clicklist[[1]]$lat,
-#              data$clicklist[[2]]$lat,
-#              data$clicklist[[3]]$lat,
-#              data$clicklist[[4]]$lat)
-#    lons <- c(data$clicklist[[1]]$lng,
-#              data$clicklist[[2]]$lng,
-#              data$clicklist[[3]]$lng,
-#              data$clicklist[[4]]$lng)
-#    
-#    df <- data.frame(lon = lons, lat = lats)
-#    
-#    study_boundary_mod = st_as_sf(df, coords = c('lon', 'lat'), crs = 4326) %>%
-#      st_transform(3578) %>% 
-#      summarise(geometry = st_combine(geometry)) %>%
-#      st_cast('POLYGON')
-#
-#    data$study_boundary <- study_boundary_mod
-#    
-#    tmapProxy('map1',
-#              x = {tm_remove_layer(1000) + 
-#                  tm_shape(data$study_boundary) + tm_borders(lwd = 2,
-#                                                             group='Study boundary')})
-#  }
-#  
-#  return(data)
-#}
+modify.study.boundary <- function(input, output, session, data) {
+ print('click')
+ if (length(data$clicklist) ==4) {
+   data$clicklist <- list()
+ }
+
+ click <- input$map1_click
+
+ data$clicklist[[length(data$clicklist) + 1]] <- click
+
+ if (length(data$clicklist) == 4) {
+   lats <- c(data$clicklist[[1]]$lat,
+             data$clicklist[[2]]$lat,
+             data$clicklist[[3]]$lat,
+             data$clicklist[[4]]$lat)
+   lons <- c(data$clicklist[[1]]$lng,
+             data$clicklist[[2]]$lng,
+             data$clicklist[[3]]$lng,
+             data$clicklist[[4]]$lng)
+
+   df <- data.frame(lon = lons, lat = lats)
+
+   study_boundary_mod = st_as_sf(df, coords = c('lon', 'lat'), crs = 4326) %>%
+     st_transform(3578) %>%
+     summarise(geometry = st_combine(geometry)) %>%
+     st_cast('POLYGON')
+
+   data$study_boundary <- study_boundary_mod
+
+   leafletProxy('map1',
+             x = {tm_remove_layer(1000) +
+                 tm_shape(data$study_boundary) + tm_borders(lwd = 2,
+                                                            group='Study boundary')})
+ }
+
+ return(data)
+}
 
 
 # update.transparency <- function(input, session, data) {
