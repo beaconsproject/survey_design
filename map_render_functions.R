@@ -17,20 +17,51 @@ render.map1 <- function(input, output, session, data) {
     # Set color palette based on selected characteristics
     attrib <- pull(data$factors, input$inv)
     if (input$inv %in% c('benchmark_pct','forest_pct')) {
-      #pal <- colorQuantile("YlGn", domain=attrib, n=5, na.color="transparent")
-      pal <- colorNumeric("YlGn", domain=attrib, na.color="transparent")
+        if (input$style=='equal') {
+          bins <- seq(0,100,100/input$bins)
+          pal <- colorBin("YlGn", domain=attrib, bins=bins)
+        } else if (input$style=='quantile') {
+          pal <- colorQuantile("YlGn", domain=attrib, n=input$bins, na.color="#f0f0f0")
+        } else {
+          pal <- colorNumeric("YlGn", domain=attrib, na.color="transparent")
+        }
     } else if (input$inv %in% c('water_pct','wetland_pct')) {
-      #pal <- colorQuantile("PuBu", domain=attrib, n=5, na.color="transparent")
-      pal <- colorNumeric("PuBu", domain=attrib, na.color="transparent")
+      pal <- colorNumeric("PuBu", domain=attrib, na.color="#f0f0f0")
+        if (input$style=='equal') {
+          bins <- seq(0,100,100/input$bins)
+          pal <- colorBin("PuBu", domain=attrib, bins=bins)
+        } else if (input$style=='quantile') {
+          pal <- colorQuantile("PuBu", domain=attrib, n=input$bins, na.color="#f0f0f0")
+        } else {
+          pal <- colorNumeric("PuBu", domain=attrib, na.color="#f0f0f0")
+        }
     } else if (input$inv %in% c('quartz_pct','placer_pct','settlements_pct')) {
-      #pal <- colorQuantile("YlGreysGn", domain=attrib, n=5, na.color="transparent")
-      pal <- colorNumeric("Greys", domain=attrib, na.color="transparent")
+        if (input$style=='equal') {
+          bins <- seq(0,100,100/input$bins)
+          pal <- colorBin("Greys", domain=attrib, bins=bins)
+        } else if (input$style=='quantile') {
+          pal <- colorQuantile("Greys", domain=attrib, n=input$bins, na.color="transparent")
+        } else {
+          pal <- colorNumeric("Greys", domain=attrib, na.color="transparent")
+        }
     } else if (input$inv %in% c('elev_median','elev_min','elev_max','elev_sd')) {
-      #pal <- colorQuantile("-BrBG", domain=attrib, n=5, na.color="transparent")
-      pal <- colorNumeric("BrBG", domain=attrib, na.color="transparent")
-    } else {
-      pal <- colorQuantile("Reds", domain=attrib, n=5, na.color="transparent")
-      pal <- colorNumeric("Reds", domain=attrib, na.color="transparent")
+        if (input$style=='equal') {
+          bins <- seq(min(attrib),max(attrib),max(attrib)/input$bins)
+          pal <- colorBin("YlOrRd", domain=attrib, bins=bins)
+        } else if (input$style=='quantile') {
+          pal <- colorQuantile("YlOrRd", domain=attrib, n=input$bins, na.color="transparent")
+        } else {
+          pal <- colorNumeric("BrBG", domain=attrib, na.color="transparent")
+        }
+   } else {
+        if (input$style=='equal') {
+          bins <- seq(0,100,100/input$bins)
+          pal <- colorBin("YlOrRd", domain=attrib, bins=bins, na.color="#f0f0f0")
+        } else if (input$style=='quantile') {
+          pal <- colorQuantile("YlOrRd", domain=attrib, n=input$bins, na.color="#f0f0f0")
+        } else {
+          pal <- colorNumeric("YlOrRd", domain=attrib, na.color="#f0f0f0")
+        }
     }
     
     #map_bounds <- study_boundary %>% st_bbox() %>% as.character()
@@ -48,7 +79,8 @@ render.map1 <- function(input, output, session, data) {
         m <- m %>% addPolygons(data=data$clusters, fillColor=~pal(clusters), fillOpacity=0.8, stroke = FALSE, group='Clusters') %>%
             addLegend(pal=pal, values=groups, opacity=1, title="Clusters")
     } else {
-        m <- m %>% addPolygons(data=data$factors, fillColor=~pal(attrib), fillOpacity=1, stroke=F, group=input$inv) %>%
+        #labels <- sprintf(input$inv %s, attrib) %>% lapply(htmltools::HTML)
+        m <- m %>% addPolygons(data=data$factors, fillColor=~pal(attrib), fillOpacity=1, stroke=F, group=input$inv, label=attrib) %>%
             addLegend(pal=pal, values=attrib, opacity=1, title=input$inv)
     }
     # If the user clicks the button to generate random samples

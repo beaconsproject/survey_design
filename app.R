@@ -43,10 +43,13 @@ ui = dashboardPage(
                 # choices defined server side 
                 choices = NULL,
                 selected = NULL),
+    
+    # Select number of bins
+    sliderInput("bins", label="Number of bins:", min=0, max=10, value=5, ticks=FALSE),
+
     # Style for binning cells for display
-    #selectInput("style", label="Select style:", 
-    #            choices=c("jenks","kmeans","quantile","pretty","equal"), 
-    #            selected="quantile"), 
+    selectInput("style", label="Select style:", 
+                choices=c("quantile","equal","numeric"), selected="quantile"), #"jenks","kmeans","pretty"
     # Set transparency
     #sliderInput("alpha", label="Transparency:", min=0, max=1, value=1, step=0.1, 
     #            ticks=FALSE),
