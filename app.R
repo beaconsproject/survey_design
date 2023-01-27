@@ -146,14 +146,14 @@ server <- function(input, output, session) {
     render.tab1(output, data)  
   })
 
-observe({
-    render.tab2(output, data)  
-  })
+# observe({
+#     render.tab2(output, data)  
+#   })
 
   observeEvent(input$goButton, {
     data <- strat.sample(input, data)
 #    map.selected.cells(input, output, session, data)
-#    render.tab2(output, session, data)
+   render.tab2(output, data)
   })
   
   # observeEvent(input$map1_click, {
