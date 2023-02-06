@@ -21,6 +21,7 @@ create.clusters <- function(input, session, data) {
   
   ## Split factors into 1) merge100_pct == 0, 2) 0 < merge100_pct <= 30, 
   ## 3) merge100_pct > 30
+  
   y <- x %>% 
     mutate(clusters = ifelse(test = merge100_pct == 0, yes = 1,
                             no = ifelse(test = merge100_pct > 0 & 
@@ -30,7 +31,6 @@ create.clusters <- function(input, session, data) {
   ## Split factors into 1) merge100_pct == 0, 2) 0 < merge100_pct <= 30, 
   ## 3) merge100_pct > 30
   data$clusters <- y 
-  
   return(data)
 }
  
@@ -292,7 +292,7 @@ render.tab2 <- function(output, data) {
 # } # render.tab2()
 
 
-strat.sample <- function(input, data) {
+sample <- function(input, data) {
   ## Simple Random
   data$n1 <- sample_n(data$clusters, input$size * as.numeric(input$clusters))
   
@@ -305,22 +305,51 @@ strat.sample <- function(input, data) {
   n.sample.3 <- 40
   
   # sample 40 from cluster 1, 60 from cluster 2, and 40 from cluster 3
-  data$simple1 <- data$clusters %>%
-    filter(clusters == 1) %>%
-    slice_sample(n = n.sample.1)
-  
-  data$simple2 <- data$clusters %>%
-    filter(clusters == 2) %>%
-    slice_sample(n = n.sample.2)
+  # 
   
   data$simple3 <- data$clusters %>% 
-    filter(clusters == 3) %>%
+  filter(clusters == 3) %>%
     slice_sample(n = n.sample.3)
   
-  data$simple <- rbind(data$simple1, data$simple2, data$simple3)
+  elev.mean <- mean(data$simple3$elev_median)
+  elev.sd <- sd(data$simple3$elev_median)
   
+  wetland.median <- mean(data$simple3$wetland_pct)
+  wetland.sd <- sd(data$simple3$wetland_pct)
+  
+  
+  
+  data$simple1 <- data$clusters %>%
+    dplyr::filter(clusters == 1,
+           elev_median > (elev.mean - elev.sd),
+           elev_median < (elev.mean + elev.sd),
+           wetland_pct > (wetland.median - elev.sd),
+           wetland_pct < (wetland.median + wetland.sd)
+           ) %>%
+    slice_sample(n = 60)
+  
+  
+  data$simple2 <- data$clusters %>%
+    dplyr::filter(clusters == 2,
+           elev_median > (elev.mean - elev.sd),
+           elev_median < (elev.mean + elev.sd),
+           wetland_pct > (wetland.median - elev.sd),
+           wetland_pct < (wetland.median + wetland.sd)
+           ) %>%
+    slice_sample(n = 60)
+  
+
+  
+  data$simple <- rbind(data$simple1, data$simple2, data$simple3)
+  data$simple_all_cells
   data$n2 <- data$simple
   
+  # n3 is stratified random sampling; ie same number sampled from each cluster
+  
+  data$n3 <- data$clusters %>%
+    group_by(clusters) %>%
+    sample_n(size = input$size)
+  print('sampled successfully')
   return(data)
 }
 
@@ -357,35 +386,35 @@ strat.sample <- function(input, data) {
 #   }
 #   
 #   ####
-#   # n2 is stratified random sampling; ie same number sampled from each cluster
-#    
-#   if (input$thlands) {
-#     print('prioritizing th lands')
-#     
-#     strat.random <- data.frame(matrix(nrow = 0, ncol = ncol(data$clusters)))
-#     colnames(strat.random) = colnames(data$clusters)
-#     
-#     for (i in 1:input$clusters) {
-#       tmp.th <- filter(clusters_th, clusters %in% i)
-#       # fewer cells with settlement land than cells that need to be selected
-#       if (nrow(tmp.th) < input$size) {
-#         tmp.not.th <- sample_n(clusters_not_th, input$size - nrow(tmp))
-#         tmp <- rbind(tmp.th, tmp.not.th)
-#       } else {
-#         tmp <- sample_n(tmp.th, input$size)
-#       }
-#       
-#       strat.random <- rbind(strat.random, tmp)
-#       
-#     } 
-#     
-#     data$n2 <- strat.random
-#     
-#   } else {
-#     
-#     data$n2 <- data$clusters %>%
-#       group_by(clusters) %>%
-#       sample_n(size = input$size)
+  # # n2 is stratified random sampling; ie same number sampled from each cluster
+  # 
+  # if (input$thlands) {
+  #   print('prioritizing th lands')
+  # 
+  #   strat.random <- data.frame(matrix(nrow = 0, ncol = ncol(data$clusters)))
+  #   colnames(strat.random) = colnames(data$clusters)
+  # 
+  #   for (i in 1:input$clusters) {
+  #     tmp.th <- filter(clusters_th, clusters %in% i)
+  #     # fewer cells with settlement land than cells that need to be selected
+  #     if (nrow(tmp.th) < input$size) {
+  #       tmp.not.th <- sample_n(clusters_not_th, input$size - nrow(tmp))
+  #       tmp <- rbind(tmp.th, tmp.not.th)
+  #     } else {
+  #       tmp <- sample_n(tmp.th, input$size)
+  #     }
+  # 
+  #     strat.random <- rbind(strat.random, tmp)
+  # 
+  #   }
+  # 
+  #   data$n2 <- strat.random
+  # 
+  # } else {
+  # 
+  #   data$n2 <- data$clusters %>%
+  #     group_by(clusters) %>%
+  #     sample_n(size = input$size)
 #     
 #   }
 #   print('finished strat.sample')
