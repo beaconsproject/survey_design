@@ -151,7 +151,7 @@ server <- function(input, output, session) {
 #   })
 
   observeEvent(input$goButton, {
-    data <- strat.sample(input, data)
+   data <- sample(input, data)
 #    map.selected.cells(input, output, session, data)
    render.tab2(output, data)
   })
