@@ -143,17 +143,19 @@ server <- function(input, output, session) {
   })
   
   observe({
-    render.tab1(output, data)  
+    render.tab1(output, data)
   })
 
-# observe({
-#     render.tab2(output, data)  
-#   })
+observe({
+    render.tab2(output, data)
+  })
 
   observeEvent(input$goButton, {
    data <- sample(input, data)
 #    map.selected.cells(input, output, session, data)
-   render.tab2(output, data)
+   data <- create.dta1(data)
+   # render.tab1(output, data)
+   # render.tab2(output, data)
   })
   
   # observeEvent(input$map1_click, {

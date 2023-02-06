@@ -113,15 +113,18 @@ create.clusters <- function(input, session, data) {
 
 create.dta1 <- function(data) {
   print('in create.dta1')
+  # View(data$n2)
   # print(data$clusters)
   # print(is.null(data$clusters))
   
   if (is.null(data$clusters)) {
+  # if (is.null(data$n2)) {
     print('returning early')
     return()
   }
   
   data$dta1 <- data$clusters %>%
+  # data$dta1 <- data$n3
     st_drop_geometry() %>%
     group_by(clusters) %>%
     summarize(n = n(),
@@ -382,7 +385,8 @@ sample <- function(input, data) {
   
   
   data$simple1 <- data$clusters %>%
-    dplyr::filter(clusters == 1,
+    dplyr::filter(clusters == 1) %>%
+    dplyr::filter(
            elev_median > (elev.mean - elev.sd),
            elev_median < (elev.mean + elev.sd),
            wetland_pct > (wetland.median - elev.sd),
@@ -392,7 +396,8 @@ sample <- function(input, data) {
   
   
   data$simple2 <- data$clusters %>%
-    dplyr::filter(clusters == 2,
+    dplyr::filter(clusters == 2) %>%
+    dplyr::filter(
            elev_median > (elev.mean - elev.sd),
            elev_median < (elev.mean + elev.sd),
            wetland_pct > (wetland.median - elev.sd),

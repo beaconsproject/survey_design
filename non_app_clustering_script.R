@@ -12,7 +12,18 @@ n.sample.2 <- 60
 n.sample.3 <- 40
 
 ## Change NAs to 0
-factors[is.na(factors$merge100_pct),]$merge100_pct <- 0
+factors <- factors %>% 
+  mutate(
+        placer_pct=ifelse(is.na(placer_pct),0,placer_pct),
+        quartz_pct=ifelse(is.na(quartz_pct),0,quartz_pct),
+        recent_fires_pct=ifelse(is.na(recent_fires_pct),0,recent_fires_pct),
+        area500_pct=ifelse(is.na(area500_pct),0,area500_pct),
+        line500_pct=ifelse(is.na(line500_pct),0,line500_pct),
+        merge100_pct=ifelse(is.na(merge100_pct),0,merge100_pct),
+        water_pct=ifelse(is.na(water_pct),0,water_pct),
+        forest_pct=ifelse(is.na(forest_pct),0,forest_pct),
+        wetland_pct=ifelse(is.na(wetland_pct),0,wetland_pct)
+      )
 
 ## Split factors into 1) merge100_pct == 0, 2) 0 < merge100_pct <= 30, 
 ## 3) merge100_pct > 30
@@ -22,20 +33,44 @@ factors <- factors %>%
                                         merge100_pct <= split, 
                                       yes = 2, no = 3)))
 
-# sample 40 from cluster 1, 60 from cluster 2, and 40 from cluster 3
+simple3 <- factors %>%
+  filter(cluster == 3)
+
+elev.mean <- mean(simple3$elev_median)
+elev.sd <- sd(simple3$elev_median)
+
+wetland.median <- mean(simple3$wetland_pct)
+wetland.sd <- sd(simple3$wetland_pct)
+
+fire.mean <- mean(simple3$recent_fires_pct)
+fire.sd <- sd(simple3$recent_fires_pct)
+
 simple1 <- factors %>%
-  filter(cluster == 1) %>%
-  slice_sample(n = n.sample.1)
+  dplyr::filter(cluster == 1) %>%
+  dplyr::filter(
+    # elev_median > (elev.mean - elev.sd),
+    # elev_median < (elev.mean + elev.sd),
+    # wetland_pct > (wetland.median - wetland.sd),
+    # wetland_pct < (wetland.median + wetland.sd),
+    recent_fires_pct > (fire.mean - fire.sd),
+    recent_fires_pct < (fire.mean + fire.sd)
+  ) %>%
+  slice_sample(n = 60)
+
 
 simple2 <- factors %>%
-  filter(cluster == 2) %>%
-  slice_sample(n = n.sample.2)
+  dplyr::filter(cluster == 2) %>%
+  dplyr::filter(
+    # elev_median > (elev.mean - elev.sd),
+    # elev_median < (elev.mean + elev.sd),
+    # wetland_pct > (wetland.median - wetland.sd),
+    # wetland_pct < (wetland.median + wetland.sd),
+    recent_fires_pct > (fire.mean - fire.sd),
+    recent_fires_pct < (fire.mean + fire.sd)
+  ) %>%
+  dplyr::slice_sample(n = 60)
 
-simple3 <- factors %>% 
-  filter(cluster == 3) %>%
-  slice_sample(n = n.sample.3)
-
-simple <- rbind(simple1, simple2, simple3)
+hist(simple1$recent_fires_pct)
 
 ## Compare similarity of each randomly selected set to the full distribution
 ks_output <-
