@@ -155,8 +155,23 @@ render.tab1 <- function(output, data) {
 
 render.tab2 <- function(output, data) {
   output$tab2 <- DT::renderDataTable({
-    
+ 
     ks_output_simple <-
+      tibble(
+        merge100_pct = ks.test(data$factors$merge100_pct, data$n1$merge100_pct)[[1]],
+        #merge500_pct = ks.test(data$factors$merge500_pct, data$n1$merge500_pct)[[1]],
+        placer_pct = ks.test(data$factors$placer_pct, data$n1$placer_pct)[[1]],
+        quartz_pct = ks.test(data$factors$quartz_pct, data$n1$quartz_pct)[[1]],
+        recent_fires_pct = ks.test(data$factors$recent_fires_pct, data$n1$recent_fires_pct)[[1]],
+        benchmark_pct = ks.test(data$factors$benchmark_pct, data$n1$benchmark_pct)[[1]],
+        elev_median = ks.test(data$factors$elev_median, data$n1$elev_median)[[1]],
+        elev_sd = ks.test(data$factors$elev_sd, data$n1$elev_sd)[[1]],
+        forest_pct = ks.test(data$factors$forest_pct, data$n1$forest_pct)[[1]],
+        wetland_pct = ks.test(data$factors$wetland_pct, data$n1$wetland_pct)[[1]],
+        water_pct = ks.test(data$factors$water_pct, data$n1$water_pct)[[1]]
+      )
+    
+    ks_output_stratified <-
       tibble(
         merge100_pct = ks.test(data$factors$merge100_pct, data$n3$merge100_pct)[[1]],
         #merge500_pct = ks.test(data$factors$merge500_pct, data$n3$merge500_pct)[[1]],
@@ -280,10 +295,10 @@ render.tab2 <- function(output, data) {
         water_pct = ks.test(data$simple2$water_pct, data$simple3$water_pct)[[1]]
       )
     
-    labels <- tibble(ks_test=c('Simple_Random vs All_Cells', 'Full_sample vs All_cells', 'Clust1_sample vs All_cells', 
+    labels <- tibble(ks_test=c('Simple_Random vs All_cells', 'Stratified_Random vs All_cells', 'Full_sample vs All_cells', 'Clust1_sample vs All_cells', 
                                'Clust2_sample vs All_cells', 'Clust3_sample vs All_cells', 
                                'Clust1_sample vs Clust2 sample', 'Clust1_sample vs Clust3_sample', 'Clust2_sample vs Clust3_sample'))
-    ks_tests <- bind_rows(ks_output_simple, ks_output, ks_output_clust1, ks_output_clust2, ks_output_clust3,
+    ks_tests <- bind_rows(ks_output_simple, ks_output_stratified, ks_output, ks_output_clust1, ks_output_clust2, ks_output_clust3,
                           ks_output_clust1vs2, ks_output_clust1vs3, ks_output_clust2vs3)
     ks_tests <- bind_cols(labels, ks_tests)
     
@@ -407,12 +422,19 @@ sample <- function(input, data) {
   data$n2 <- data$simple
   
   # n3 is stratified random sampling; ie same number sampled from each cluster
-  
   data$n3 <- data$clusters %>%
     group_by(clusters) %>%
     sample_n(size = input$size)
   print('sampled successfully')
+  #return(data)
+
+  # n4 is simple random sample using 140 cells
+  data$n1 <- data$factors %>%
+    sample_n(size = 140)
+  #print('sampled successfully')
   return(data)
+  #data$n1 <- data$simple
+
 }
 
 # strat.sample <- function(input, data) {

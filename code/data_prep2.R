@@ -105,8 +105,11 @@ fires <- st_read(paste0(dropbox,'yt_fire_history.gpkg')) %>%
     select(FIRE_ID, FIRE_YEAR)
 fires <- st_as_sfc(fires) %>%
     lwgeom::lwgeom_make_valid() %>%
+    st_union() %>%
     st_as_sf() %>%
-    st_intersection(grid)
+    st_intersection(grid) %>%
+    #st_as_sf() %>%
+    st_cast("MULTIPOLYGON")
 fires <- fires %>% mutate(area_m2=st_area(fires)) # calculate area
 xfires <- st_drop_geometry(fires) %>%
     group_by(id) %>%
