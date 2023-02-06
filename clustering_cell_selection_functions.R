@@ -156,6 +156,21 @@ render.tab1 <- function(output, data) {
 render.tab2 <- function(output, data) {
   output$tab2 <- DT::renderDataTable({
     
+    ks_output_simple <-
+      tibble(
+        merge100_pct = ks.test(data$factors$merge100_pct, data$n3$merge100_pct)[[1]],
+        #merge500_pct = ks.test(data$factors$merge500_pct, data$n3$merge500_pct)[[1]],
+        placer_pct = ks.test(data$factors$placer_pct, data$n3$placer_pct)[[1]],
+        quartz_pct = ks.test(data$factors$quartz_pct, data$n3$quartz_pct)[[1]],
+        recent_fires_pct = ks.test(data$factors$recent_fires_pct, data$n3$recent_fires_pct)[[1]],
+        benchmark_pct = ks.test(data$factors$benchmark_pct, data$n3$benchmark_pct)[[1]],
+        elev_median = ks.test(data$factors$elev_median, data$n3$elev_median)[[1]],
+        elev_sd = ks.test(data$factors$elev_sd, data$n3$elev_sd)[[1]],
+        forest_pct = ks.test(data$factors$forest_pct, data$n3$forest_pct)[[1]],
+        wetland_pct = ks.test(data$factors$wetland_pct, data$n3$wetland_pct)[[1]],
+        water_pct = ks.test(data$factors$water_pct, data$n3$water_pct)[[1]]
+      )
+    
     ks_output <-
       tibble(
         merge100_pct = ks.test(data$factors$merge100_pct, data$simple$merge100_pct)[[1]],
@@ -220,9 +235,56 @@ render.tab2 <- function(output, data) {
         water_pct = ks.test(data$factors$water_pct, data$simple3$water_pct)[[1]]
       )
     
-    labels <- tibble(ks_test=c('Full_sample vs All_cells', 'Clust1_sample vs All_cells', 
-                               'Clust2_sample vs All_cells', 'Clust3_sample vs All_cells'))
-    ks_tests <- bind_rows(ks_output, ks_output_clust1, ks_output_clust2, ks_output_clust3)
+    ks_output_clust1vs2 <- 
+      tibble(
+        merge100_pct = ks.test(data$simple1$merge100_pct, data$simple2$merge100_pct)[[1]],
+        #merge500_pct = ks.test(data$simple1$merge500_pct, data$simple2$merge500_pct)[[1]],
+        placer_pct = ks.test(data$simple1$placer_pct, data$simple2$placer_pct)[[1]],
+        quartz_pct = ks.test(data$simple1$quartz_pct, data$simple2$quartz_pct)[[1]],
+        recent_fires_pct = ks.test(data$simple1$recent_fires_pct, data$simple2$recent_fires_pct)[[1]],
+        benchmark_pct = ks.test(data$simple1$benchmark_pct, data$simple2$benchmark_pct)[[1]],
+        elev_median = ks.test(data$simple1$elev_median, data$simple2$elev_median)[[1]],
+        elev_sd = ks.test(data$simple1$elev_sd, data$simple2$elev_sd)[[1]],
+        forest_pct = ks.test(data$simple1$forest_pct, data$simple2$forest_pct)[[1]],
+        wetland_pct = ks.test(data$simple1$wetland_pct, data$simple2$wetland_pct)[[1]],
+        water_pct = ks.test(data$simple1$water_pct, data$simple2$water_pct)[[1]]
+      )
+    
+    ks_output_clust1vs3 <- 
+      tibble(
+        merge100_pct = ks.test(data$simple1$merge100_pct, data$simple3$merge100_pct)[[1]],
+        #merge500_pct = ks.test(data$simple1$merge500_pct, data$simple2$merge500_pct)[[1]],
+        placer_pct = ks.test(data$simple1$placer_pct, data$simple3$placer_pct)[[1]],
+        quartz_pct = ks.test(data$simple1$quartz_pct, data$simple3$quartz_pct)[[1]],
+        recent_fires_pct = ks.test(data$simple1$recent_fires_pct, data$simple3$recent_fires_pct)[[1]],
+        benchmark_pct = ks.test(data$simple1$benchmark_pct, data$simple3$benchmark_pct)[[1]],
+        elev_median = ks.test(data$simple1$elev_median, data$simple3$elev_median)[[1]],
+        elev_sd = ks.test(data$simple1$elev_sd, data$simple3$elev_sd)[[1]],
+        forest_pct = ks.test(data$simple1$forest_pct, data$simple3$forest_pct)[[1]],
+        wetland_pct = ks.test(data$simple1$wetland_pct, data$simple3$wetland_pct)[[1]],
+        water_pct = ks.test(data$simple1$water_pct, data$simple3$water_pct)[[1]]
+      )
+    
+    ks_output_clust2vs3 <- 
+      tibble(
+        merge100_pct = ks.test(data$simple2$merge100_pct, data$simple3$merge100_pct)[[1]],
+        #merge500_pct = ks.test(data$simple2$merge500_pct, data$simple2$merge500_pct)[[1]],
+        placer_pct = ks.test(data$simple2$placer_pct, data$simple3$placer_pct)[[1]],
+        quartz_pct = ks.test(data$simple2$quartz_pct, data$simple3$quartz_pct)[[1]],
+        recent_fires_pct = ks.test(data$simple2$recent_fires_pct, data$simple3$recent_fires_pct)[[1]],
+        benchmark_pct = ks.test(data$simple2$benchmark_pct, data$simple3$benchmark_pct)[[1]],
+        elev_median = ks.test(data$simple2$elev_median, data$simple3$elev_median)[[1]],
+        elev_sd = ks.test(data$simple2$elev_sd, data$simple3$elev_sd)[[1]],
+        forest_pct = ks.test(data$simple2$forest_pct, data$simple3$forest_pct)[[1]],
+        wetland_pct = ks.test(data$simple2$wetland_pct, data$simple3$wetland_pct)[[1]],
+        water_pct = ks.test(data$simple2$water_pct, data$simple3$water_pct)[[1]]
+      )
+    
+    labels <- tibble(ks_test=c('Simple_Random vs All_Cells', 'Full_sample vs All_cells', 'Clust1_sample vs All_cells', 
+                               'Clust2_sample vs All_cells', 'Clust3_sample vs All_cells', 
+                               'Clust1_sample vs Clust2 sample', 'Clust1_sample vs Clust3_sample', 'Clust2_sample vs Clust3_sample'))
+    ks_tests <- bind_rows(ks_output_simple, ks_output, ks_output_clust1, ks_output_clust2, ks_output_clust3,
+                          ks_output_clust1vs2, ks_output_clust1vs3, ks_output_clust2vs3)
     ks_tests <- bind_cols(labels, ks_tests)
     
     datatable(ks_tests, rownames = F, options = list(dom = 'tip', scrollX = T,
@@ -341,7 +403,7 @@ sample <- function(input, data) {
 
   
   data$simple <- rbind(data$simple1, data$simple2, data$simple3)
-  data$simple_all_cells
+  # data$simple_all_cells <- 
   data$n2 <- data$simple
   
   # n3 is stratified random sampling; ie same number sampled from each cluster
