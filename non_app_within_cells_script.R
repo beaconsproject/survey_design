@@ -30,7 +30,7 @@ n1 <- st_as_sf(terra::spatSample(terra::vect(grid), 3, strata='id'))
 n2 <- st_as_sf(terra::spatSample(terra::vect(grid_annulus), 3, strata='id'))
 
 ######################################################################################
-# THE NEXT LINES OF CODE WILL REQUIRED THE CELLS THAT WERE RANDOMLY SELECTED
+# THE NEXT LINES OF CODE WILL REQUIRE THE CELLS THAT WERE RANDOMLY SELECTED
 # cluster1 = 40 cells, cluster2a = 30 cells, cluster2b = 30 cells, cluster3 = 40 cells
 
 # Cluster 1 - join the 40 cells in this cluster to n1
