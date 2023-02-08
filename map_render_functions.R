@@ -118,9 +118,9 @@ map.selected.cells <- function(input, output, session, data) {
  # add randomly selected cells
  print('in map.selected.cells')
  leafletProxy('map1', session, {
-    n1rnd3 <- st_as_sf(terra::spatSample(terra::vect(data$n1), 3, strata='id'))
-    n2rnd3 <- st_as_sf(terra::spatSample(terra::vect(data$n2), 3, strata='id'))
-    n3rnd3 <- st_as_sf(terra::spatSample(terra::vect(data$n3), 3, strata='id'))
+    n1rnd3 <- st_as_sf(terra::spatSample(terra::vect(data$n1), 1, strata='id'))
+    n2rnd3 <- st_as_sf(terra::spatSample(terra::vect(data$n2), 1, strata='id'))
+    n3rnd3 <- st_as_sf(terra::spatSample(terra::vect(data$n3), 1, strata='id'))
     addPolygons(data$n2, fill=F, color='yellow', weight=2, group='40-60-40') %>%
       addMarkers(n2rnd3, group="Camera traps (40-60-40)") %>%
     addPolygons(data$n1, group='Simple random') %>%

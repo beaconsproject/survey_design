@@ -34,17 +34,30 @@ n2 <- st_as_sf(terra::spatSample(terra::vect(grid_annulus), 3, strata='id'))
 # cluster1 = 40 cells, cluster2a = 30 cells, cluster2b = 30 cells, cluster3 = 40 cells
 
 # Cluster 1 - join the 40 cells in this cluster to n1
-#cluster1_n1 <- left_join(cluster1, n1)
+cluster1_cells <- st_join(cluster1, n1)
+cluster1_sites <- n1 %>% filter(id %in% cluster1$id) %>%
+  mutate(cluster = '1')
 
 # Cluster 2a - join 30/60 cells in this cluster to n1
-#cluster2a_n1 <- left_join(cluster2a, n1)
+cluster2a_cells <- st_join(cluster2a, n1)
+cluster2a_sites <- n1 %>% filter(id %in% cluster2a$id) %>% 
+  mutate(cluster = '2a')
 
 # Cluster 2b - join 30/60 cells in this cluster to n2
-#cluster2b_n2 <- left_join(cluster2b, n2)
+cluster2b_cells <- st_join(cluster2b, n2)
+cluster2b_sites <- n2 %>% filter(id %in% cluster2b$id) %>%
+  mutate(cluster = '2b')
 
 # Cluster 3 - join the 40 cells in this cluster to n2
-#cluster3_n1 <- left_join(cluster3, n2)
+cluster3_cells <- st_join(cluster3, n2)
+cluster3_sites <- n2 %>% filter(id %in% cluster3$id) %>%
+  mutate(cluster = '3')
 
 # Last step: combine the clusters
-#full_sample <- bind_rows(cluster1_n1, cluster2a_n1, cluster2b_n2, cluster3_n2)
+full_sample_cells <- bind_rows(cluster1_cells, cluster2a_cells, cluster2b_cells, cluster3_cells)
+st_write(full_sample_cells, paste0(getwd(), '/www/Selected_Cells.shp'), delete_dsn = T)
+
+full_sample_sites <- bind_rows(cluster1_sites, cluster2a_sites, cluster2b_sites, cluster3_sites)
+st_write(full_sample_sites, paste0(getwd(), '/www/Selected_Sites.shp'), delete_dsn = T)
+
 ######################################################################################

@@ -1,8 +1,10 @@
 library(sf)
 library(dplyr)
 
-factors = st_read("www/wolverines.gpkg", "survey_factors", quiet=T)
-
+factors_unconstrained = st_read("www/wolverines.gpkg", "survey_factors", quiet=T)
+names <- colnames(factors_unconstrained)
+factors = st_read('www/wolverines.gpkg', 'survey_factors_constrained', quiet = T)
+colnames(factors) <- names
 # value to split between low/medium and high disturbance
 split <- 30
 
@@ -36,41 +38,80 @@ factors <- factors %>%
 simple3 <- factors %>%
   filter(cluster == 3)
 
-elev.mean <- mean(simple3$elev_median)
-elev.sd <- sd(simple3$elev_median)
+# elev.mean <- mean(simple3$elev_median)
+# elev.sd <- sd(simple3$elev_median)
+# 
+# wetland.median <- mean(simple3$wetland_pct)
+# wetland.sd <- sd(simple3$wetland_pct)
 
-wetland.median <- mean(simple3$wetland_pct)
-wetland.sd <- sd(simple3$wetland_pct)
+# fire.min <- quantile(simple3$recent_fires_pct)[2]
+fire.min <- 0
+# fire.max <- quantile(simple3$recent_fires_pct)[4]
+fire.max <- 47
 
-fire.mean <- mean(simple3$recent_fires_pct)
-fire.sd <- sd(simple3$recent_fires_pct)
-
-simple1 <- factors %>%
+simple1.all <- factors %>%
   dplyr::filter(cluster == 1) %>%
   dplyr::filter(
     # elev_median > (elev.mean - elev.sd),
     # elev_median < (elev.mean + elev.sd),
     # wetland_pct > (wetland.median - wetland.sd),
     # wetland_pct < (wetland.median + wetland.sd),
-    recent_fires_pct > (fire.mean - fire.sd),
-    recent_fires_pct < (fire.mean + fire.sd)
-  ) %>%
-  slice_sample(n = 60)
+    recent_fires_pct >= fire.min,
+    recent_fires_pct <= fire.max
+  ) 
+simple1 <- simple1.all %>%
+  slice_sample(n = 40)
 
 
-simple2 <- factors %>%
+simple2.all <- factors %>%
   dplyr::filter(cluster == 2) %>%
   dplyr::filter(
     # elev_median > (elev.mean - elev.sd),
     # elev_median < (elev.mean + elev.sd),
     # wetland_pct > (wetland.median - wetland.sd),
     # wetland_pct < (wetland.median + wetland.sd),
-    recent_fires_pct > (fire.mean - fire.sd),
-    recent_fires_pct < (fire.mean + fire.sd)
-  ) %>%
+    recent_fires_pct >= fire.min,
+    recent_fires_pct <= (fire.max)
+  ) 
+simple2 <- simple2.all %>%
   dplyr::slice_sample(n = 60)
 
+quantile(simple1.all$recent_fires_pct)
+quantile(simple2.all$recent_fires_pct)
+quantile(simple3$recent_fires_pct)
+
+means.table <- tibble(elev.median = c(mean(simple1.all$elev_median), mean(simple1$elev_median), 
+                                      mean(simple2.all$elev_median), mean(simple2$elev_median),
+                                      mean(simple3$elev_median)),
+                      elev.sd = c(mean(simple1.all$elev_sd), mean(simple1$elev_sd), 
+                                  mean(simple2.all$elev_sd), mean(simple2$elev_sd), 
+                                  mean(simple3$elev_sd)),
+                      fires.mean = c(mean(simple1.all$recent_fires_pct), mean(simple1$recent_fires_pct), 
+                                     mean(simple2.all$recent_fires_pct), 
+                                     mean(simple2$recent_fires_pct), mean(simple3$recent_fires_pct)),
+                      fires.sd = c(sd(simple1.all$recent_fires_pct), sd(simple1$recent_fires_pct), 
+                                   sd(simple2.all$recent_fires_pct), 
+                                   sd(simple2$recent_fires_pct), sd(simple3$recent_fires_pct)),
+                      wetlands = c(mean(simple1.all$wetland_pct), mean(simple1$wetland_pct), 
+                                   mean(simple2.all$wetland_pct),
+                                   mean(simple2$wetland_pct), mean(simple3$wetland_pct)))
+
+labels <- c('simple1.all', 'simple1', 'simple2.all', 'simple2', 'simple3')
+
+cbind(labels, means.table)
+
+means.table
+
 hist(simple1$recent_fires_pct)
+
+cluster1 <- simple1 %>%
+  mutate(cluster = as.character(cluster))
+cluster2a <- simple2[1:30,] %>% 
+  mutate(cluster = '2a')
+cluster2b <- simple2[31:60,] %>%
+  mutate(cluster = '2b')
+cluster3 <- simple3 %>%
+  mutate(cluster = as.character(cluster))
 
 ## Compare similarity of each randomly selected set to the full distribution
 ks_output <-
